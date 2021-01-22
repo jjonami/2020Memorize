@@ -38,15 +38,14 @@ struct EmojiMemoryGameView: View {
     @ObservedObject var viewModel: EmojiMemoryGame
     
     var body: some View {
-        HStack{
-            ForEach(viewModel.cards) { card in
-                CardView(card: card).onTapGesture {
-                    viewModel.choose(card: card)
-                }
+        Grid(viewModel.cards) { card in
+            CardView(card: card).onTapGesture {
+                viewModel.choose(card: card)
             }
+            .padding(5)
         }
         .padding()
-        .foregroundColor(.orange)
+        .foregroundColor(.green)
     }
 }
 
@@ -59,26 +58,23 @@ struct CardView: View {
         }
     }
     
-    func body(for size: CGSize) -> some View {
-        ZStack{
-            if card.isFaceUp {
-                RoundedRectangle(cornerRadius: conerRadius).fill(Color.white)
-                RoundedRectangle(cornerRadius: conerRadius).stroke(lineWidth: edgeLineWidth)
+    @ViewBuilder
+    private func body(for size: CGSize) -> some View {
+        if card.isFaceUp || !card.isMached {
+            ZStack{
+                Pie(startAngle: Angle.degrees(0-90), endAngle: Angle.degrees(110-90), clockwise: true)
+                    .padding(5).opacity(0.38)
                 Text(card.content)
-            } else{
-                RoundedRectangle(cornerRadius: conerRadius).fill()
+                    .font(Font.system(size: fontSize(for: size)))
             }
+            .cardify(isFaceUp: card.isFaceUp)
         }
-        .font(Font.system(size: fontSize(for: size)))
     }
     
     // MARK: - Drawing Constants
     
-    let conerRadius: CGFloat = 10
-    let edgeLineWidth: CGFloat = 3
-    let fontScaleFactor: CGFloat = 0.75
-    func fontSize(for size: CGSize) -> CGFloat {
-        min(size.width, size.height) * 0.75
+    private func fontSize(for size: CGSize) -> CGFloat {
+        min(size.width, size.height) * 0.7
     }
 }
 
@@ -97,6 +93,20 @@ struct CardView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        EmojiMemoryGameView(viewModel: EmojiMemoryGame())
+        let game = EmojiMemoryGame()
+        game.choose(card: game.cards[0])
+        return EmojiMemoryGameView(viewModel: game)
     }
 }
+
+
+/**
+ SwiftUI 에서 View 구조체(struct)는 반드시 하나의 body를 가지고,  body는 하나의 View를 가지고, 그 View는 다양한 하위 뷰를 구성한다.
+ - [@ViewBuilder] : SwiftUI 에서 초기화할 때 자식뷰를 넣고, 특정한 특징을 가진 부모뷰를 정의할 때에 사용하는 것
+ - ZStack, HStack, VStack, ForEach, Group
+ */
+
+/**
+ [Shape] : protocol that inherits from View
+ ex) RounedRectangle, Circle, Capsule
+ */
